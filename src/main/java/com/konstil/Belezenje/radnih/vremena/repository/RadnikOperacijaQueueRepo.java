@@ -1,0 +1,13 @@
+package com.konstil.Belezenje.radnih.vremena.repository;
+
+import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacijaQueue;
+import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQueue,Long> {
+    public RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacije(Long zaposleniId, StatusOperacije statusOperacije);
+
+    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacije(Long zaposleniId, StatusOperacije statusOperacije);
+}
