@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQueue,Long> {
-    public RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacije(Long zaposleniId, StatusOperacije statusOperacije);
+public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQueue, Long> {
+    RadnikOperacijaQueue findByZaposleniIdAndAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
 
-    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacije(Long zaposleniId, StatusOperacije statusOperacije);
+    RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
+
+    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
+
+
 }

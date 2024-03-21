@@ -1,10 +1,7 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
@@ -13,15 +10,19 @@ import java.util.Date;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class RadnikOperacijaQueue {
     @Enumerated(EnumType.STRING)
     StatusOperacije statusOperacije;
     @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     @ManyToOne
     Zaposleni zaposleni;
     @ManyToOne
+    @JoinColumn(referencedColumnName = "ID", nullable = false)
+
     Operacija operacija;
     @ManyToOne
     RadniNalog radniNalog;

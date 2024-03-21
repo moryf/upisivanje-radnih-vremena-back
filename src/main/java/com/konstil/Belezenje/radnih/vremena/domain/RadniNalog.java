@@ -1,19 +1,32 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.Date;
 
 @Entity
+@Table(name = "radninalog")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class RadniNalog {
     @Id
+    private Integer id;
+
+    @Column(name = "kasa")
     private String sifra;
+    private Date pocetak;
+    private Date zatvoren;
+    @Enumerated(jakarta.persistence.EnumType.STRING)
+    private StanjeNaloga stanje;
+
+    @Column(name = "rok")
+    private Date rok;
+
+    String naziv;
+
 
 }

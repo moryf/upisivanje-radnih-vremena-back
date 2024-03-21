@@ -14,10 +14,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults()) // Enable CORS
-                .csrf(csrf -> csrf.disable()) // Disable CSRF
+                .csrf(csrf -> csrf.disable())// Disable CSRF
                 .authorizeHttpRequests(auth ->
                                 auth
+                                        .requestMatchers("zaposleni/cardLogin/*").permitAll() // Allow all requests to the login and register endpoints
                                         .anyRequest().authenticated()
+
                         // Require authentication for all requests
                 )// Require authentication for all requests
                 .httpBasic(Customizer.withDefaults()); // Use HTTP Basic Authentication

@@ -1,12 +1,7 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 
 @Entity
@@ -14,15 +9,26 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@Table(name = "radnici")
+@ToString
 public class Zaposleni {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    Long id;
+    Integer id;
+
+    @Column(name = "name")
     String ime;
-    String prezime;
 
     String korisnickoIme;
 
     String lozinka;
+    @Enumerated(jakarta.persistence.EnumType.STRING)
+    Uloga uloga;
+    @Enumerated(jakarta.persistence.EnumType.STRING)
+    Active active;
+
+    public enum Active{
+        DA,NE
+    }
 
 }

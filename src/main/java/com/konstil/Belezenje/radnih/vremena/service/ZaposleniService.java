@@ -1,45 +1,75 @@
 package com.konstil.Belezenje.radnih.vremena.service;
 
+import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
 import com.konstil.Belezenje.radnih.vremena.domain.Zaposleni;
+import com.konstil.Belezenje.radnih.vremena.dto.LoginRequest;
+import com.konstil.Belezenje.radnih.vremena.dto.ZaposleniAktuelnaPlaniranaDTO;
 import com.konstil.Belezenje.radnih.vremena.exception.BackEndError;
+import com.konstil.Belezenje.radnih.vremena.repository.RadnikOperacijaQueueRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.ZaposleniRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ZaposleniService {
+
     ZaposleniRepo zaposleniRepo;
+
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    RadnikOperacijaQueueRepo radnikOperacijaQueueRepo;
+
     @Autowired
-    public ZaposleniService(ZaposleniRepo zaposleniRepo) {
+    public ZaposleniService(ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo) {
         this.zaposleniRepo = zaposleniRepo;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
     }
 
-    public Zaposleni login(String korisnickoIme, String lozinka) {
-        Zaposleni zaposleni = zaposleniRepo.findByKorisnickoIme(korisnickoIme);
-        if (zaposleni == null) {
+
+    public Zaposleni login(LoginRequest loginRequest) {
+        System.out.println(loginRequest.getKorisnickoIme());
+        Zaposleni zaposleni = zaposleniRepo.findByKorisnickoIme(loginRequest.getKorisnickoIme());
+        if(zaposleni==null)
             throw new BackEndError("Korisnicko ime ne postoji");
-        }
-        if (!bCryptPasswordEncoder.matches(lozinka, zaposleni.getLozinka())) {
+        if(bCryptPasswordEncoder.matches(loginRequest.getLozinka(),zaposleni.getLozinka()))
+            return zaposleni;
+        else
             throw new BackEndError("Pogresna lozinka");
-        }
-        return zaposleni;
+
     }
 
     public Zaposleni register(Zaposleni zaposleni) {
-        if (zaposleniRepo.findByKorisnickoIme(zaposleni.getKorisnickoIme()) != null) {
-            throw new BackEndError("Korisnicko ime vec postoji");
-        }
         zaposleni.setLozinka(bCryptPasswordEncoder.encode(zaposleni.getLozinka()));
         return zaposleniRepo.save(zaposleni);
     }
 
-    public List<Zaposleni> getAllZaposleni() {
-        return zaposleniRepo.findAll();
+    public List<ZaposleniAktuelnaPlaniranaDTO> getSviAktivni() {
+
+        List<Zaposleni> zaposleniList =  zaposleniRepo.findAllByActive(Zaposleni.Active.DA);
+        List<ZaposleniAktuelnaPlaniranaDTO> dtoList = new ArrayList<>();
+        for (Zaposleni zaposleni :zaposleniList){
+            ZaposleniAktuelnaPlaniranaDTO dto = new ZaposleniAktuelnaPlaniranaDTO();
+            dto.setAktuelna(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleni.getId(), StatusOperacije.AKTUELNA));
+            dto.setPlanirana(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleni.getId(),StatusOperacije.PLANIRANA));
+            dto.setZaposleni(zaposleni);
+            dtoList.add(dto);
+        }
+        return dtoList;
+    }
+
+    public Zaposleni getZaposleniById(Integer id) {
+        return zaposleniRepo.findById(id).get();
+    }
+
+    public Zaposleni cardLogin(String cardId) {
+        Zaposleni zaposleni = zaposleniRepo.findById(Integer.parseInt(cardId)).get();
+        if(zaposleni==null)
+            throw new BackEndError("Korisnicko ime ne postoji");
+        return zaposleni;
     }
 }

@@ -3,93 +3,107 @@ package com.konstil.Belezenje.radnih.vremena.service;
 import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacija;
 import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacijaQueue;
 import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
-import com.konstil.Belezenje.radnih.vremena.exception.BackEndError;
 import com.konstil.Belezenje.radnih.vremena.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class RadnikOperacijaQueueService {
-    @Autowired
     RadnikOperacijaQueueRepo radnikOperacijaQueueRepo;
-    @Autowired
     ZaposleniRepo zaposleniRepo;
-    @Autowired
     OperacijaRepo operacijaRepo;
-    @Autowired
     RadniNalogRepo radniNalogRepo;
-    @Autowired
     RadnikOperacijaRepo radnikOperacijaRepo;
 
-    public RadnikOperacijaQueue planirajOperaciju(Long zaposleniId, Long operacijaId, String radniNalogId) {
-        if(zaposleniRepo.findById(zaposleniId).isEmpty()){
-            throw new BackEndError("Zaposleni sa id " + zaposleniId + " ne postoji");
-        }
-        if(operacijaRepo.findById(operacijaId).isEmpty()){
-            throw new BackEndError("Operacija sa id " + operacijaId + " ne postoji");
-        }
-        if (radniNalogRepo.findById(radniNalogId).isEmpty()){
-            throw new BackEndError("Radni nalog sa id " + radniNalogId + " ne postoji");
-        }
+    @Autowired
+    public RadnikOperacijaQueueService(RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, ZaposleniRepo zaposleniRepo, OperacijaRepo operacijaRepo, RadniNalogRepo radniNalogRepo, RadnikOperacijaRepo radnikOperacijaRepo) {
+        this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
+        this.zaposleniRepo = zaposleniRepo;
+        this.operacijaRepo = operacijaRepo;
+        this.radniNalogRepo = radniNalogRepo;
+        this.radnikOperacijaRepo = radnikOperacijaRepo;
+    }
+
+
+
+
+
+    public RadnikOperacijaQueue postPlaniranaOperacijaZaposleni(Integer zaposleniId, Integer operacijaId, String radniNalogSifra) {
         RadnikOperacijaQueue radnikOperacijaQueue = new RadnikOperacijaQueue();
-        radnikOperacijaQueue.setZaposleni(zaposleniRepo.findById(zaposleniId).get());
-        radnikOperacijaQueue.setOperacija(operacijaRepo.findById(operacijaId).get());
-        radnikOperacijaQueue.setRadniNalog(radniNalogRepo.findById(radniNalogId).get());
         radnikOperacijaQueue.setStatusOperacije(StatusOperacije.PLANIRANA);
+        radnikOperacijaQueue.setOperacija(operacijaRepo.findById(operacijaId).get());
+        radnikOperacijaQueue.setZaposleni(zaposleniRepo.findById(zaposleniId).get());
+        radnikOperacijaQueue.setRadniNalog(radniNalogRepo.findBySifra(radniNalogSifra));
 
+        System.out.println(radnikOperacijaQueue);
 
         return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
     }
 
-    public RadnikOperacijaQueue postaviAktuelnu(Long id) {
+    public RadnikOperacijaQueue putRadnikoperacijaQueueAktuelna(Long id) {
         RadnikOperacijaQueue radnikOperacijaQueue = radnikOperacijaQueueRepo.findById(id).get();
+        radnikOperacijaQueue.setPocetak(new Date());
         radnikOperacijaQueue.setStatusOperacije(StatusOperacije.AKTUELNA);
-        radnikOperacijaQueue.setPocetak(new java.util.Date());
         return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
     }
 
-    public RadnikOperacija zavrsiOperaciju(Long id) {
+    public RadnikOperacija putRadnikoperacijaQueueZavrsena(Long id) {
+        RadnikOperacija radnikOperacija= new RadnikOperacija();
         RadnikOperacijaQueue radnikOperacijaQueue = radnikOperacijaQueueRepo.findById(id).get();
-        RadnikOperacija radnikOperacija = new RadnikOperacija();
-        radnikOperacija.setZaposleni(radnikOperacijaQueue.getZaposleni());
+        radnikOperacija.setDatum(new Date());
+        radnikOperacija.setPocetak(new Time(radnikOperacijaQueue.getPocetak().getTime()));
+        radnikOperacija.setKraj(new Time(new Date().getTime()));
         radnikOperacija.setOperacija(radnikOperacijaQueue.getOperacija());
+        radnikOperacija.setZaposleni(radnikOperacijaQueue.getZaposleni());
         radnikOperacija.setRadniNalog(radnikOperacijaQueue.getRadniNalog());
-        radnikOperacija.setPocetak(radnikOperacijaQueue.getPocetak());
-        radnikOperacija.setKraj(new Date());
+        radnikOperacija.setOpisPosla(radnikOperacijaQueue.getOperacija().getNaziv());
+        radnikOperacijaQueueRepo.deleteById(id);
         return radnikOperacijaRepo.save(radnikOperacija);
     }
 
-    public RadnikOperacijaQueue zavrsiAktuelnuZapocniSledecu(Long zaposleniId) {
-        RadnikOperacijaQueue aktuelna = radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId, StatusOperacije.AKTUELNA);
-        if(aktuelna != null){
-            zavrsiOperaciju(aktuelna.getId());
-        }else {
-            throw new BackEndError("Nema aktuelne operacije za zaposlenog sa id " + zaposleniId);
-        }
-        RadnikOperacijaQueue sledeca = radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId, StatusOperacije.PLANIRANA);
-        if(sledeca != null){
-            sledeca=postaviAktuelnu(sledeca.getId());
-        }
-        else {
-            throw new BackEndError("Nema planirane operacije za zaposlenog sa id " + zaposleniId);
-        }
+    public RadnikOperacijaQueue getAktuelnaOperacija(Integer id) {
+        return radnikOperacijaQueueRepo.findByZaposleniIdAndAndStatusOperacije(id,StatusOperacije.AKTUELNA);
+    }
 
+
+    public RadnikOperacijaQueue getPlaniranaOperacija(Integer zaposleniId) {
+        return radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId,StatusOperacije.PLANIRANA);
+    }
+
+
+    public List<RadnikOperacijaQueue> getPlaniraneOperacije(Integer zaposleniId) {
+        return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacije(zaposleniId,StatusOperacije.PLANIRANA);
+    }
+
+    public RadnikOperacijaQueue zavrsiAktuelnuZapocniSledecu(Integer zaposleniId) {
+        RadnikOperacijaQueue aktuelna = getAktuelnaOperacija(zaposleniId);
+        RadnikOperacijaQueue sledeca = getPlaniranaOperacija(zaposleniId);
+        putRadnikoperacijaQueueZavrsena(aktuelna.getId());
+        sledeca = putRadnikoperacijaQueueAktuelna(sledeca.getId());
         return sledeca;
     }
 
-    public RadnikOperacijaQueue getAktuelnaOperacija(Long zaposleniId) {
-
-        return radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId, StatusOperacije.AKTUELNA);
+    public String deleteRadnikOperacijaQueue(Long id) {
+        radnikOperacijaQueueRepo.deleteById(id);
+        return "Uspesno obrisana";
     }
 
-    public RadnikOperacijaQueue getPlaniranaOperacija(Long zaposleniId) {
-        return radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId, StatusOperacije.PLANIRANA);
-    }
-
-    public List<RadnikOperacijaQueue> getPlaniraneOperacije(Long zaposleniId) {
-        return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacije(zaposleniId, StatusOperacije.PLANIRANA);
+    public RadnikOperacijaQueue pauzirajAktuelnu(Integer zaposleniId) {
+        RadnikOperacijaQueue aktuelna = getAktuelnaOperacija(zaposleniId);
+        RadnikOperacija radnikOperacija = new RadnikOperacija();
+        radnikOperacija.setDatum(new Date());
+        radnikOperacija.setPocetak(new Time(aktuelna.getPocetak().getTime()));
+        radnikOperacija.setOperacija(aktuelna.getOperacija());
+        radnikOperacija.setRadniNalog(aktuelna.getRadniNalog());
+        radnikOperacija.setZaposleni(aktuelna.getZaposleni());
+        radnikOperacija.setKraj(new Time(new Date().getTime()));
+        radnikOperacija.setOpisPosla(aktuelna.getOperacija().getNaziv());
+        radnikOperacijaRepo.save(radnikOperacija);
+        aktuelna.setStatusOperacije(StatusOperacije.PLANIRANA);
+        return radnikOperacijaQueueRepo.save(aktuelna);
     }
 }

@@ -1,5 +1,6 @@
 package com.konstil.Belezenje.radnih.vremena.controller;
 
+import com.konstil.Belezenje.radnih.vremena.repository.RadnikOperacijaQueueRepo;
 import com.konstil.Belezenje.radnih.vremena.service.RadnikOperacijaQueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,42 +10,62 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/radnikOperacijaQueue")
 @CrossOrigin
 public class RadnikOperacijaQueueController {
-    @Autowired
     RadnikOperacijaQueueService radnikOperacijaQueueService;
 
-    @PostMapping("/zaposleni/{zaposleniId}/operacija/{operacijaId}/radniNalog/{radniNalogId}/planirana")
-    public ResponseEntity<?> planirajOperaciju(@PathVariable Long zaposleniId,@PathVariable Long operacijaId,@PathVariable String radniNalogId) {
-        return ResponseEntity.ok(radnikOperacijaQueueService.planirajOperaciju(zaposleniId, operacijaId, radniNalogId));
+    @Autowired
+    public RadnikOperacijaQueueController(RadnikOperacijaQueueService radnikOperacijaQueueService) {
+        this.radnikOperacijaQueueService = radnikOperacijaQueueService;
+    }
+
+    @PostMapping("/zaposleni/{zaposleniId}/operacija/{operacijaId}/radniNalog/{radniNalogSifra}/planirana")
+    public ResponseEntity<?> postPlaniranaOperacijaZaposleni(@PathVariable Integer zaposleniId, @PathVariable Integer operacijaId, @PathVariable String radniNalogSifra){
+        return ResponseEntity.ok(radnikOperacijaQueueService.postPlaniranaOperacijaZaposleni(zaposleniId,operacijaId,radniNalogSifra));
     }
 
     @PutMapping("/{id}/aktuelna")
-    public ResponseEntity<?> postaviAktuelnu(@PathVariable Long id) {
-        return ResponseEntity.ok(radnikOperacijaQueueService.postaviAktuelnu(id));
+    public ResponseEntity<?> putRadnikoperacijaQueueAktuelna(@PathVariable Long id){
+        return  ResponseEntity.ok(radnikOperacijaQueueService.putRadnikoperacijaQueueAktuelna(id));
     }
 
-    @PostMapping("{id}/zavrsena")
-    public ResponseEntity<?> zavrsiOperaciju(@PathVariable Long id) {
-        return ResponseEntity.ok(radnikOperacijaQueueService.zavrsiOperaciju(id));
+    @PutMapping("/{id}/zavrsena")
+    public ResponseEntity<?> putRadnikoperacijaQueueZavrsena(@PathVariable Long id)
+    {
+        return  ResponseEntity.ok(radnikOperacijaQueueService.putRadnikoperacijaQueueZavrsena(id));
     }
 
-    @GetMapping("/zaposleni/{zaposleniId}/zavrsiAktuelnuZapocniSledecu")
-    public ResponseEntity<?> zavrsiAktuelnuZapocniSledecu(@PathVariable Long zaposleniId) {
-        return ResponseEntity.ok(radnikOperacijaQueueService.zavrsiAktuelnuZapocniSledecu(zaposleniId));
-    }
-
-    @GetMapping("/zaposleni/{zaposleniId}/aktuelna")
-    public ResponseEntity<?> getAktuelnaOperacija(@PathVariable Long zaposleniId) {
-        return ResponseEntity.ok(radnikOperacijaQueueService.getAktuelnaOperacija(zaposleniId));
+    @GetMapping("/zaposleni/{id}/aktuelna")
+    public ResponseEntity<?> getAktuelnaOperacija(@PathVariable Integer id)
+    {
+        return ResponseEntity.ok(radnikOperacijaQueueService.getAktuelnaOperacija(id));
     }
 
     @GetMapping("/zaposleni/{zaposleniId}/planirana")
-    public ResponseEntity<?> getPlaniranaOperacija(@PathVariable Long zaposleniId) {
+    public ResponseEntity<?> getPlaniranaOperacija(@PathVariable Integer zaposleniId){
         return ResponseEntity.ok(radnikOperacijaQueueService.getPlaniranaOperacija(zaposleniId));
     }
 
     @GetMapping("/zaposleni/{zaposleniId}/planirane/sve")
-    public ResponseEntity<?> getPlaniraneOperacije(@PathVariable Long zaposleniId) {
+    public ResponseEntity<?> getPlaniraneOperacije(@PathVariable Integer zaposleniId){
         return ResponseEntity.ok(radnikOperacijaQueueService.getPlaniraneOperacije(zaposleniId));
+    }
+
+    @GetMapping("/zaposleni/{zaposleniId}/zavrsiAktuelnuZapocniSledecu")
+    public ResponseEntity<?> zavrsiAktuelnuZapocniSledecu(@PathVariable Integer zaposleniId){
+        return ResponseEntity.ok(radnikOperacijaQueueService.zavrsiAktuelnuZapocniSledecu(zaposleniId));
+    }
+
+    @PutMapping("/zapisleni/{zaposleniId}/pauzirajAktuelnu")
+    public ResponseEntity<?> pauzirajAktuelnu(@PathVariable Integer zaposleniId){
+        try {
+            return ResponseEntity.ok(radnikOperacijaQueueService.pauzirajAktuelnu(zaposleniId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRadnikOperacijaQueue(@PathVariable Long id){
+        return ResponseEntity.ok(radnikOperacijaQueueService.deleteRadnikOperacijaQueue(id));
     }
 
 }

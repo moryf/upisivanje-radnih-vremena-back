@@ -9,9 +9,14 @@ import java.util.List;
 
 @Service
 public class OperacijaService {
-    @Autowired
     OperacijaRepo operacijaRepo;
-    public List<Operacija> getAllOperacija() {
+
+    @Autowired
+    public OperacijaService(OperacijaRepo operacijaRepo) {
+        this.operacijaRepo = operacijaRepo;
+    }
+
+    public List<Operacija> svi() {
         return operacijaRepo.findAll();
     }
 }
