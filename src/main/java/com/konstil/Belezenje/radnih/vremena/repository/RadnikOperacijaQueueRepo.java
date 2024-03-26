@@ -11,7 +11,7 @@ public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQ
 
     RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
 
-    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
+    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacijeOrderByRadniNalogRokAsc(Integer zaposleniId, StatusOperacije statusOperacije);
 
 
 }

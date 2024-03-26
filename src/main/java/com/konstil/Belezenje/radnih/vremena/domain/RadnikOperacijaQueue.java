@@ -19,6 +19,7 @@ public class RadnikOperacijaQueue {
     Long id;
 
     @ManyToOne
+            @JoinColumn(nullable = true)
     Zaposleni zaposleni;
     @ManyToOne
     @JoinColumn(referencedColumnName = "ID", nullable = false)
@@ -27,4 +28,6 @@ public class RadnikOperacijaQueue {
     @ManyToOne
     RadniNalog radniNalog;
     Date pocetak;
+    @ManyToOne
+    Masina masina;
 }

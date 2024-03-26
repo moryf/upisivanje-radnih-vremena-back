@@ -68,4 +68,9 @@ public class RadnikOperacijaQueueController {
         return ResponseEntity.ok(radnikOperacijaQueueService.deleteRadnikOperacijaQueue(id));
     }
 
+    @PostMapping("/zaposleni/{zaposleniId}/operacija/{operacijaId}/radniNalog/{radniNalogSifra}/zameniAktuelnu")
+    public ResponseEntity<?> zameniAktuelnuOperaciju(@PathVariable Integer zaposleniId, @PathVariable Integer operacijaId, @PathVariable String radniNalogSifra){
+        return ResponseEntity.ok(radnikOperacijaQueueService.zameniAktuelnuOperaciju(zaposleniId,operacijaId,radniNalogSifra));
+    }
+
 }

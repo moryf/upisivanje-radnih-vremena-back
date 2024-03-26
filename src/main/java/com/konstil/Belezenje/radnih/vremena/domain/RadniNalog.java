@@ -26,6 +26,11 @@ public class RadniNalog {
     @Column(name = "rok")
     private Date rok;
 
+    @ManyToOne
+            Proizvod proizvod;
+    int kolicina;
+
+
     String naziv;
 
 

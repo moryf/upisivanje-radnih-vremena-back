@@ -76,7 +76,7 @@ public class RadnikOperacijaQueueService {
 
 
     public List<RadnikOperacijaQueue> getPlaniraneOperacije(Integer zaposleniId) {
-        return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacije(zaposleniId,StatusOperacije.PLANIRANA);
+        return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacijeOrderByRadniNalogRokAsc(zaposleniId,StatusOperacije.PLANIRANA);
     }
 
     public RadnikOperacijaQueue zavrsiAktuelnuZapocniSledecu(Integer zaposleniId) {
@@ -105,5 +105,12 @@ public class RadnikOperacijaQueueService {
         radnikOperacijaRepo.save(radnikOperacija);
         aktuelna.setStatusOperacije(StatusOperacije.PLANIRANA);
         return radnikOperacijaQueueRepo.save(aktuelna);
+    }
+
+    public RadnikOperacijaQueue zameniAktuelnuOperaciju(Integer zaposleniId, Integer operacijaId, String radniNalogSifra) {
+        RadnikOperacijaQueue nova = postPlaniranaOperacijaZaposleni(zaposleniId,operacijaId,radniNalogSifra);
+        pauzirajAktuelnu(zaposleniId);
+        putRadnikoperacijaQueueAktuelna(nova.getId());
+        return nova;
     }
 }

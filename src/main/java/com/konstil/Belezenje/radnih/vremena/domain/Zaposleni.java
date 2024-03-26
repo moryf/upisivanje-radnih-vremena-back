@@ -3,6 +3,8 @@ package com.konstil.Belezenje.radnih.vremena.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 
 @Entity
 @AllArgsConstructor
@@ -26,6 +28,8 @@ public class Zaposleni {
     Uloga uloga;
     @Enumerated(jakarta.persistence.EnumType.STRING)
     Active active;
+    @ManyToMany
+    List<Zaposleni> podredjeni;
 
     public enum Active{
         DA,NE
