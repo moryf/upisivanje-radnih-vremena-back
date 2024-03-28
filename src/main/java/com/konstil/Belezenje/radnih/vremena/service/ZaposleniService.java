@@ -1,10 +1,13 @@
 package com.konstil.Belezenje.radnih.vremena.service;
 
+import com.konstil.Belezenje.radnih.vremena.domain.Operacija;
 import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
+import com.konstil.Belezenje.radnih.vremena.domain.Uloga;
 import com.konstil.Belezenje.radnih.vremena.domain.Zaposleni;
 import com.konstil.Belezenje.radnih.vremena.dto.LoginRequest;
 import com.konstil.Belezenje.radnih.vremena.dto.ZaposleniAktuelnaPlaniranaDTO;
 import com.konstil.Belezenje.radnih.vremena.exception.BackEndError;
+import com.konstil.Belezenje.radnih.vremena.repository.OperacijaRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.RadnikOperacijaQueueRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.ZaposleniRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +26,14 @@ public class ZaposleniService {
 
     RadnikOperacijaQueueRepo radnikOperacijaQueueRepo;
 
+    OperacijaRepo operacijaRepo;
+
     @Autowired
-    public ZaposleniService(ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo) {
+    public ZaposleniService(ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, OperacijaRepo operacijaRepo) {
         this.zaposleniRepo = zaposleniRepo;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
         this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
+        this.operacijaRepo = operacijaRepo;
     }
 
 
@@ -50,7 +56,7 @@ public class ZaposleniService {
 
     public List<ZaposleniAktuelnaPlaniranaDTO> getSviAktivni() {
 
-        List<Zaposleni> zaposleniList =  zaposleniRepo.findAllByActive(Zaposleni.Active.DA);
+        List<Zaposleni> zaposleniList =  zaposleniRepo.findAllByActiveOrderByImeAsc(Zaposleni.Active.DA);
         List<ZaposleniAktuelnaPlaniranaDTO> dtoList = new ArrayList<>();
         for (Zaposleni zaposleni :zaposleniList){
             ZaposleniAktuelnaPlaniranaDTO dto = new ZaposleniAktuelnaPlaniranaDTO();
@@ -71,5 +77,41 @@ public class ZaposleniService {
         if(zaposleni==null)
             throw new BackEndError("Korisnicko ime ne postoji");
         return zaposleni;
+    }
+
+    public List<Zaposleni> getMenadzeri() {
+        return zaposleniRepo.findAllByActiveAndUloga(Zaposleni.Active.DA,Uloga.MENADZER);
+    }
+
+    public List<Zaposleni> getAll() {
+        return zaposleniRepo.findAllByActiveOrderByImeAsc(Zaposleni.Active.DA);
+    }
+
+    public Zaposleni addPodredjeni(Integer id, Integer podredjeniId) {
+        Zaposleni menadzer = zaposleniRepo.findById(id).get();
+        Zaposleni podredjeni = zaposleniRepo.findById(podredjeniId).get();
+        menadzer.getPodredjeni().add(podredjeni);
+        return zaposleniRepo.save(menadzer);
+    }
+
+    public Zaposleni addKvalifikacija(Integer id, Integer operacijaId) {
+        Zaposleni zaposleni = zaposleniRepo.findById(id).get();
+        Operacija operacija = operacijaRepo.findById(operacijaId).get();
+        zaposleni.getKvalifikacije().add(operacija);
+        return zaposleniRepo.save(zaposleni);
+    }
+
+    public Zaposleni removePodredjeni(Integer id, Integer podredjeniId) {
+        Zaposleni menadzer = zaposleniRepo.findById(id).get();
+        Zaposleni podredjeni = zaposleniRepo.findById(podredjeniId).get();
+        menadzer.getPodredjeni().remove(podredjeni);
+        return zaposleniRepo.save(menadzer);
+    }
+
+    public Zaposleni removeKvalifikacija(Integer id, Integer operacijaId) {
+        Zaposleni zaposleni = zaposleniRepo.findById(id).get();
+        Operacija operacija = operacijaRepo.findById(operacijaId).get();
+        zaposleni.getKvalifikacije().remove(operacija);
+        return zaposleniRepo.save(zaposleni);
     }
 }

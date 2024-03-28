@@ -31,6 +31,12 @@ public class Zaposleni {
     @ManyToMany
     List<Zaposleni> podredjeni;
 
+    @ManyToMany
+            @JoinTable(name = "zaposleni_operacija_kvalifikacije",
+                    joinColumns = @JoinColumn(name = "zaposleni_id"),
+                    inverseJoinColumns = @JoinColumn(name = "operacija_id"))
+    List<Operacija> kvalifikacije;
+
     public enum Active{
         DA,NE
     }

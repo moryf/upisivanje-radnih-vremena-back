@@ -3,8 +3,11 @@ package com.konstil.Belezenje.radnih.vremena.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -22,6 +25,7 @@ public class SecurityConfig {
 
                         // Require authentication for all requests
                 )// Require authentication for all requests
+
                 .httpBasic(Customizer.withDefaults()); // Use HTTP Basic Authentication
         return http.build();
     }

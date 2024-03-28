@@ -18,7 +18,7 @@ public class SablonOperacija {
     @Id
     Integer id;
     @ManyToOne
-    SablonTipProizvoda sablon;
+    TipProizvoda tipProizvoda;
     @ManyToOne
     Operacija operacija;
     int redosled;

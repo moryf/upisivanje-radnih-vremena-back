@@ -3,6 +3,7 @@ package com.konstil.Belezenje.radnih.vremena.domain;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,16 +14,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ProizvodOperacija {
+@Table(name = "alati")
+public class Alat {
     @Id
-    private Integer id;
-    @ManyToOne
-    Operacija operacija;
-    @ManyToOne
-    Proizvod proizvod;
+    Integer id;
+    String naziv;
     @ManyToOne
     Masina masina;
-    @ManyToOne
-    Alat alat;
-    private Integer redosled;
 }
