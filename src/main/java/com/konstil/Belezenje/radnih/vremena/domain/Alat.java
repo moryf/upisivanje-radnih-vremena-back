@@ -1,9 +1,6 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +14,7 @@ import lombok.Setter;
 @Table(name = "alati")
 public class Alat {
     @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
     String naziv;
     @ManyToOne

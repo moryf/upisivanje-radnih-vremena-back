@@ -1,8 +1,6 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +13,7 @@ import lombok.Setter;
 @Setter
 public class ProizvodOperacija {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @ManyToOne
     Operacija operacija;

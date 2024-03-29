@@ -114,4 +114,8 @@ public class ZaposleniService {
         zaposleni.getKvalifikacije().remove(operacija);
         return zaposleniRepo.save(zaposleni);
     }
+
+    public Zaposleni updateZaposleni( Zaposleni zaposleni) {
+        return zaposleniRepo.save(zaposleni);
+    }
 }

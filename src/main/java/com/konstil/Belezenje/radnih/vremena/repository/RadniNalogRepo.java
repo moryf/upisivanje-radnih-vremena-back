@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface RadniNalogRepo extends JpaRepository<RadniNalog, Integer> {
 
-    @Query("SELECT r FROM RadniNalog r WHERE r.stanje = ?1 and r.sifra like 'E%' order by r.rok asc")
+    @Query("SELECT r FROM RadniNalog r WHERE r.stanje = ?1 order by r.rok asc")
     List<RadniNalog> findByStanje(StanjeNaloga stanjeNaloga);
 
     RadniNalog findBySifra(String radniNalogSifra);

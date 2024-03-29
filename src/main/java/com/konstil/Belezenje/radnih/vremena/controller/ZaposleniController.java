@@ -111,4 +111,13 @@ public class ZaposleniController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping
+    public ResponseEntity<?> updateZaposleni( @RequestBody Zaposleni zaposleni) {
+        try {
+            return ResponseEntity.ok(zaposleniService.updateZaposleni(zaposleni));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

@@ -15,7 +15,6 @@ import java.util.Date;
 public class RadniNalog {
     @Id
     private Integer id;
-
     @Column(name = "kasa")
     private String sifra;
     private Date pocetak;
@@ -28,7 +27,6 @@ public class RadniNalog {
 
     @ManyToOne
             Proizvod proizvod;
-    int kolicina;
 
 
     String naziv;

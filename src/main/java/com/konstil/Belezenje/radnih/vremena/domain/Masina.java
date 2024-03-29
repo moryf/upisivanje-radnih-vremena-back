@@ -1,8 +1,6 @@
 package com.konstil.Belezenje.radnih.vremena.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +14,7 @@ import lombok.Setter;
 @Table(name = "masine")
 public class Masina {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String naziv;
     private String opis;
