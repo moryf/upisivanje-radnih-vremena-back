@@ -26,4 +26,9 @@ public class ProizvodController {
     public ResponseEntity<?> addProizvod(@RequestBody Proizvod proizvod) {
         return ResponseEntity.ok(proizvodService.addProizvod(proizvod));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getProizvod(@PathVariable Integer id) {
+        return ResponseEntity.ok(proizvodService.getProizvod(id));
+    }
 }

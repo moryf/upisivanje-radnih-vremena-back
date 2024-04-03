@@ -38,16 +38,25 @@ public class RadnikOperacijaQueueService {
         radnikOperacijaQueue.setOperacija(operacijaRepo.findById(operacijaId).get());
         radnikOperacijaQueue.setZaposleni(zaposleniRepo.findById(zaposleniId).get());
         radnikOperacijaQueue.setRadniNalog(radniNalogRepo.findBySifra(radniNalogSifra));
+        int maxRedosled = radnikOperacijaQueueRepo.findMaxRedosledByZaposleniId(zaposleniId);
+        if (maxRedosled==0) {
+            radnikOperacijaQueue.setRedosled(1);
+        } else {
+            radnikOperacijaQueue.setRedosled(maxRedosled+1);
+        }
 
         System.out.println(radnikOperacijaQueue);
 
         return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
     }
 
-    public RadnikOperacijaQueue putRadnikoperacijaQueueAktuelna(Long id) {
+    public RadnikOperacijaQueue putRadnikoperacijaQueueAktuelna(Long id, Integer zaposleniId) {
         RadnikOperacijaQueue radnikOperacijaQueue = radnikOperacijaQueueRepo.findById(id).get();
         radnikOperacijaQueue.setPocetak(new Date());
         radnikOperacijaQueue.setStatusOperacije(StatusOperacije.AKTUELNA);
+        if (radnikOperacijaQueue.getZaposleni()==null) {
+            radnikOperacijaQueue.setZaposleni(zaposleniRepo.findById(zaposleniId).get());
+        }
         return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
     }
 
@@ -61,6 +70,9 @@ public class RadnikOperacijaQueueService {
         radnikOperacija.setZaposleni(radnikOperacijaQueue.getZaposleni());
         radnikOperacija.setRadniNalog(radnikOperacijaQueue.getRadniNalog());
         radnikOperacija.setOpisPosla(radnikOperacijaQueue.getOperacija().getNaziv());
+
+        RadnikOperacijaQueue sledeca = new RadnikOperacijaQueue();
+
         radnikOperacijaQueueRepo.deleteById(id);
         return radnikOperacijaRepo.save(radnikOperacija);
     }
@@ -83,7 +95,7 @@ public class RadnikOperacijaQueueService {
         RadnikOperacijaQueue aktuelna = getAktuelnaOperacija(zaposleniId);
         RadnikOperacijaQueue sledeca = getPlaniranaOperacija(zaposleniId);
         putRadnikoperacijaQueueZavrsena(aktuelna.getId());
-        sledeca = putRadnikoperacijaQueueAktuelna(sledeca.getId());
+        sledeca = putRadnikoperacijaQueueAktuelna(sledeca.getId(), zaposleniId);
         return sledeca;
     }
 
@@ -110,7 +122,7 @@ public class RadnikOperacijaQueueService {
     public RadnikOperacijaQueue zameniAktuelnuOperaciju(Integer zaposleniId, Integer operacijaId, String radniNalogSifra) {
         RadnikOperacijaQueue nova = postPlaniranaOperacijaZaposleni(zaposleniId,operacijaId,radniNalogSifra);
         pauzirajAktuelnu(zaposleniId);
-        putRadnikoperacijaQueueAktuelna(nova.getId());
+        putRadnikoperacijaQueueAktuelna(nova.getId(), zaposleniId);
         return nova;
     }
 }

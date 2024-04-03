@@ -116,6 +116,7 @@ public class ZaposleniService {
     }
 
     public Zaposleni updateZaposleni( Zaposleni zaposleni) {
+        System.out.println(zaposleni);
         return zaposleniRepo.save(zaposleni);
     }
 }

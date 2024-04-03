@@ -30,4 +30,9 @@ public class TipProizvodaController {
     public ResponseEntity<?> addTipProizvoda(@PathVariable String naziv) {
         return ResponseEntity.ok(tipPorizovdaService.addTipProizvoda(naziv));
     }
+
+    @GetMapping("/sablon/{id}")
+    public ResponseEntity<?> getSablonTipaProizvoda(@PathVariable Integer id) {
+        return ResponseEntity.ok(tipPorizovdaService.getSablonTipaProizvoda(id));
+    }
 }

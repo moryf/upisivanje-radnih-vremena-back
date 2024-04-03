@@ -37,6 +37,13 @@ public class Zaposleni {
                     inverseJoinColumns = @JoinColumn(name = "operacija_id"))
     List<Operacija> kvalifikacije;
 
+    @Enumerated(jakarta.persistence.EnumType.STRING)
+    Rezim rezim;
+
+    public enum Rezim{
+    STANDARD,KONSTRUKCIJE
+    }
+
     public enum Active{
         DA,NE
     }

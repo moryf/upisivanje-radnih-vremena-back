@@ -17,6 +17,4 @@ public class Alat {
             @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
     String naziv;
-    @ManyToOne
-    Masina masina;
 }

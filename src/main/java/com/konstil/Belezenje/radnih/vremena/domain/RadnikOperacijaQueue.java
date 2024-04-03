@@ -29,4 +29,6 @@ public class RadnikOperacijaQueue {
     Date pocetak;
     @ManyToOne
     Masina masina;
+
+    int redosled;
 }

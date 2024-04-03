@@ -23,4 +23,8 @@ public class ProizvodService {
     public Proizvod addProizvod(Proizvod proizvod) {
         return proizvodRepo.save(proizvod);
     }
+
+    public Proizvod getProizvod(Integer id) {
+        return proizvodRepo.findById(id).get();
+    }
 }

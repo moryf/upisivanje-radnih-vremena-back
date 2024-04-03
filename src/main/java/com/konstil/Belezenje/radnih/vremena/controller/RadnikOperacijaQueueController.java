@@ -22,9 +22,9 @@ public class RadnikOperacijaQueueController {
         return ResponseEntity.ok(radnikOperacijaQueueService.postPlaniranaOperacijaZaposleni(zaposleniId,operacijaId,radniNalogSifra));
     }
 
-    @PutMapping("/{id}/aktuelna")
-    public ResponseEntity<?> putRadnikoperacijaQueueAktuelna(@PathVariable Long id){
-        return  ResponseEntity.ok(radnikOperacijaQueueService.putRadnikoperacijaQueueAktuelna(id));
+    @PutMapping("/{id}/aktuelna/{zaposleniId}")
+    public ResponseEntity<?> putRadnikoperacijaQueueAktuelna(@PathVariable Long id, @PathVariable Integer zaposleniId){
+        return  ResponseEntity.ok(radnikOperacijaQueueService.putRadnikoperacijaQueueAktuelna(id,zaposleniId));
     }
 
     @PutMapping("/{id}/zavrsena")
