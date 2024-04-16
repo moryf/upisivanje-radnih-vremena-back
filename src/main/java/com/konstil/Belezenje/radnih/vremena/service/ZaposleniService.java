@@ -60,8 +60,8 @@ public class ZaposleniService {
         List<ZaposleniAktuelnaPlaniranaDTO> dtoList = new ArrayList<>();
         for (Zaposleni zaposleni :zaposleniList){
             ZaposleniAktuelnaPlaniranaDTO dto = new ZaposleniAktuelnaPlaniranaDTO();
-            dto.setAktuelna(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleni.getId(), StatusOperacije.AKTUELNA));
-            dto.setPlanirana(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleni.getId(),StatusOperacije.PLANIRANA));
+            dto.setAktuelna(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(zaposleni.getId(), StatusOperacije.AKTUELNA));
+            dto.setPlanirana(radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(zaposleni.getId(),StatusOperacije.PLANIRANA));
             dto.setZaposleni(zaposleni);
             dtoList.add(dto);
         }

@@ -1,10 +1,13 @@
 package com.konstil.Belezenje.radnih.vremena.controller;
 
+import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacijaQueue;
 import com.konstil.Belezenje.radnih.vremena.repository.RadnikOperacijaQueueRepo;
 import com.konstil.Belezenje.radnih.vremena.service.RadnikOperacijaQueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/radnikOperacijaQueue")
@@ -71,6 +74,11 @@ public class RadnikOperacijaQueueController {
     @PostMapping("/zaposleni/{zaposleniId}/operacija/{operacijaId}/radniNalog/{radniNalogSifra}/zameniAktuelnu")
     public ResponseEntity<?> zameniAktuelnuOperaciju(@PathVariable Integer zaposleniId, @PathVariable Integer operacijaId, @PathVariable String radniNalogSifra){
         return ResponseEntity.ok(radnikOperacijaQueueService.zameniAktuelnuOperaciju(zaposleniId,operacijaId,radniNalogSifra));
+    }
+
+    @PutMapping("/saveAll")
+    public ResponseEntity<?> saveAll(@RequestBody List<RadnikOperacijaQueue> radnikOperacijaQueues){
+        return ResponseEntity.ok(radnikOperacijaQueueService.saveAll(radnikOperacijaQueues));
     }
 
 }

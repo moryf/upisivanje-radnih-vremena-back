@@ -6,15 +6,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQueue, Long> {
     RadnikOperacijaQueue findByZaposleniIdAndAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
 
-    RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacije(Integer zaposleniId, StatusOperacije statusOperacije);
+    RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(Integer zaposleniId, StatusOperacije statusOperacije);
 
     List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacijeOrderByRadniNalogRokAsc(Integer zaposleniId, StatusOperacije statusOperacije);
 
 
     @Query("select max(roq.redosled) from RadnikOperacijaQueue roq where roq.zaposleni.id = ?1")
-    int findMaxRedosledByZaposleniId(Integer zaposleniId);
+    Optional<Integer> findMaxRedosledByZaposleniId(Integer zaposleniId);
+
+    @Query("select roq from RadnikOperacijaQueue roq where roq.statusOperacije = ?1 order by roq.radniNalog.rok asc, roq.redosled asc")
+    List<RadnikOperacijaQueue> findAllByStatusOperacijeOrderByRadniNalogRokAscRedosledAsc(StatusOperacije statusOperacije);
+
+    List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(Integer id, StatusOperacije statusOperacije);
 }

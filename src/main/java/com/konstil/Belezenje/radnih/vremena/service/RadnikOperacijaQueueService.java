@@ -1,8 +1,6 @@
 package com.konstil.Belezenje.radnih.vremena.service;
 
-import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacija;
-import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacijaQueue;
-import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
+import com.konstil.Belezenje.radnih.vremena.domain.*;
 import com.konstil.Belezenje.radnih.vremena.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +9,8 @@ import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 
+import static com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije.PLANIRANA;
+
 @Service
 public class RadnikOperacijaQueueService {
     RadnikOperacijaQueueRepo radnikOperacijaQueueRepo;
@@ -18,34 +18,33 @@ public class RadnikOperacijaQueueService {
     OperacijaRepo operacijaRepo;
     RadniNalogRepo radniNalogRepo;
     RadnikOperacijaRepo radnikOperacijaRepo;
+    RNProizvodnjaRepo rnProizvodnjaRepo;
+    ProizvodOperacijaRepo proizvodOperacijaRepo;
 
     @Autowired
-    public RadnikOperacijaQueueService(RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, ZaposleniRepo zaposleniRepo, OperacijaRepo operacijaRepo, RadniNalogRepo radniNalogRepo, RadnikOperacijaRepo radnikOperacijaRepo) {
+    public RadnikOperacijaQueueService(RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, ZaposleniRepo zaposleniRepo, OperacijaRepo operacijaRepo, RadniNalogRepo radniNalogRepo, RadnikOperacijaRepo radnikOperacijaRepo, RNProizvodnjaRepo rnProizvodnjaRepo, ProizvodOperacijaRepo proizvodOperacijaRepo) {
         this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
         this.zaposleniRepo = zaposleniRepo;
         this.operacijaRepo = operacijaRepo;
         this.radniNalogRepo = radniNalogRepo;
         this.radnikOperacijaRepo = radnikOperacijaRepo;
+        this.rnProizvodnjaRepo = rnProizvodnjaRepo;
+        this.proizvodOperacijaRepo = proizvodOperacijaRepo;
     }
-
-
-
 
 
     public RadnikOperacijaQueue postPlaniranaOperacijaZaposleni(Integer zaposleniId, Integer operacijaId, String radniNalogSifra) {
         RadnikOperacijaQueue radnikOperacijaQueue = new RadnikOperacijaQueue();
-        radnikOperacijaQueue.setStatusOperacije(StatusOperacije.PLANIRANA);
+        radnikOperacijaQueue.setStatusOperacije(PLANIRANA);
         radnikOperacijaQueue.setOperacija(operacijaRepo.findById(operacijaId).get());
         radnikOperacijaQueue.setZaposleni(zaposleniRepo.findById(zaposleniId).get());
         radnikOperacijaQueue.setRadniNalog(radniNalogRepo.findBySifra(radniNalogSifra));
-        int maxRedosled = radnikOperacijaQueueRepo.findMaxRedosledByZaposleniId(zaposleniId);
+        int maxRedosled = radnikOperacijaQueueRepo.findMaxRedosledByZaposleniId(zaposleniId).orElse(0);
         if (maxRedosled==0) {
             radnikOperacijaQueue.setRedosled(1);
         } else {
             radnikOperacijaQueue.setRedosled(maxRedosled+1);
         }
-
-        System.out.println(radnikOperacijaQueue);
 
         return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
     }
@@ -71,11 +70,33 @@ public class RadnikOperacijaQueueService {
         radnikOperacija.setRadniNalog(radnikOperacijaQueue.getRadniNalog());
         radnikOperacija.setOpisPosla(radnikOperacijaQueue.getOperacija().getNaziv());
 
-        RadnikOperacijaQueue sledeca = new RadnikOperacijaQueue();
+        RNProizvodnja rnProizvodnja = rnProizvodnjaRepo.findByRadniNalogId(radnikOperacijaQueue.getRadniNalog().getId());
 
+        if(rnProizvodnja.getTip()== RNProizvodnja.Tip.STANDARD){
+            ProizvodOperacija sledeciProizvodOperacija = proizvodOperacijaRepo.findByProizvodIdAndRedosled(rnProizvodnja.getProizvod().getId(), radnikOperacijaQueue.getRedosled()+1).orElse(null);
+            if (sledeciProizvodOperacija==null){
+                rnProizvodnja.setStatus(RNProizvodnja.Status.ZAVRSEN);
+                rnProizvodnjaRepo.save(rnProizvodnja);
+
+            }else {
+                RadnikOperacijaQueue sledeca = postPlaniranaOperacijaStandard(sledeciProizvodOperacija.getOperacija().getId(),sledeciProizvodOperacija.getRedosled(), radnikOperacijaQueue.getRadniNalog().getSifra());
+                radnikOperacijaQueueRepo.save(sledeca);
+            }
+        }
+        reorderRadnikOperacijaQueue(radnikOperacijaQueue.getZaposleni().getId());
         radnikOperacijaQueueRepo.deleteById(id);
         return radnikOperacijaRepo.save(radnikOperacija);
     }
+
+    private RadnikOperacijaQueue postPlaniranaOperacijaStandard(Integer id, Integer redosled, String sifra) {
+        RadnikOperacijaQueue radnikOperacijaQueue = new RadnikOperacijaQueue();
+        radnikOperacijaQueue.setStatusOperacije(PLANIRANA);
+        radnikOperacijaQueue.setOperacija(operacijaRepo.findById(id).get());
+        radnikOperacijaQueue.setRadniNalog(radniNalogRepo.findBySifra(sifra));
+        radnikOperacijaQueue.setRedosled(redosled);
+        return radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
+    }
+
 
     public RadnikOperacijaQueue getAktuelnaOperacija(Integer id) {
         return radnikOperacijaQueueRepo.findByZaposleniIdAndAndStatusOperacije(id,StatusOperacije.AKTUELNA);
@@ -83,29 +104,71 @@ public class RadnikOperacijaQueueService {
 
 
     public RadnikOperacijaQueue getPlaniranaOperacija(Integer zaposleniId) {
-        return radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacije(zaposleniId,StatusOperacije.PLANIRANA);
+        Zaposleni zaposleni = zaposleniRepo.findById(zaposleniId).get();
+        if(zaposleni.getRezim()== Zaposleni.Rezim.KONSTRUKCIJE) {
+            return radnikOperacijaQueueRepo.findFirstByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(zaposleniId, PLANIRANA);
+        }
+        List<RadnikOperacijaQueue> planirane= radnikOperacijaQueueRepo.findAllByStatusOperacijeOrderByRadniNalogRokAscRedosledAsc(PLANIRANA);
+        for (RadnikOperacijaQueue radnikOperacijaQueue : planirane) {
+            if ((radnikOperacijaQueue.getZaposleni()==null || radnikOperacijaQueue.getZaposleni().getId().equals(zaposleniId)) && zaposleni.getKvalifikacije().contains(radnikOperacijaQueue.getOperacija())) {
+                return radnikOperacijaQueue;
+            }
+        }
+        return null;
     }
 
 
     public List<RadnikOperacijaQueue> getPlaniraneOperacije(Integer zaposleniId) {
-        return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacijeOrderByRadniNalogRokAsc(zaposleniId,StatusOperacije.PLANIRANA);
+        Zaposleni zaposleni = zaposleniRepo.findById(zaposleniId).get();
+        if (zaposleni.getRezim()== Zaposleni.Rezim.KONSTRUKCIJE) {
+            return radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(zaposleniId, PLANIRANA);
+        }
+        else{
+            List<RadnikOperacijaQueue> planirane= radnikOperacijaQueueRepo.findAllByStatusOperacijeOrderByRadniNalogRokAscRedosledAsc(PLANIRANA);
+            for (int i=0; i<planirane.size(); i++) {
+                RadnikOperacijaQueue radnikOperacijaQueue = planirane.get(i);
+                System.out.println((radnikOperacijaQueue.getZaposleni()==null||radnikOperacijaQueue.getZaposleni().getId().equals(zaposleniId)) && zaposleni.getKvalifikacije().contains(radnikOperacijaQueue.getOperacija()));
+                if (!((radnikOperacijaQueue.getZaposleni()==null||radnikOperacijaQueue.getZaposleni().getId().equals(zaposleniId)) && zaposleni.getKvalifikacije().contains(radnikOperacijaQueue.getOperacija()))) {
+                    planirane.remove(radnikOperacijaQueue);
+                    i--;
+                }
+            }
+            return planirane;
+        }
+
+
     }
 
     public RadnikOperacijaQueue zavrsiAktuelnuZapocniSledecu(Integer zaposleniId) {
         RadnikOperacijaQueue aktuelna = getAktuelnaOperacija(zaposleniId);
-        RadnikOperacijaQueue sledeca = getPlaniranaOperacija(zaposleniId);
         putRadnikoperacijaQueueZavrsena(aktuelna.getId());
+        RadnikOperacijaQueue sledeca = getPlaniranaOperacija(zaposleniId);
         sledeca = putRadnikoperacijaQueueAktuelna(sledeca.getId(), zaposleniId);
         return sledeca;
     }
 
     public String deleteRadnikOperacijaQueue(Long id) {
+        RadnikOperacijaQueue radnikOperacijaQueue = radnikOperacijaQueueRepo.findById(id).get();
+        Zaposleni zaposleni = radnikOperacijaQueue.getZaposleni();
+        if(zaposleni!=null){
+            reorderRadnikOperacijaQueue(zaposleni.getId());
+        }
         radnikOperacijaQueueRepo.deleteById(id);
         return "Uspesno obrisana";
     }
 
+    private void reorderRadnikOperacijaQueue(Integer id) {
+        List<RadnikOperacijaQueue> planirane =radnikOperacijaQueueRepo.findAllByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(id, PLANIRANA);
+        for (int i = 0; i < planirane.size(); i++) {
+            planirane.get(i).setRedosled(i+1);
+        }
+        radnikOperacijaQueueRepo.saveAll(planirane);
+    }
+
     public RadnikOperacijaQueue pauzirajAktuelnu(Integer zaposleniId) {
         RadnikOperacijaQueue aktuelna = getAktuelnaOperacija(zaposleniId);
+        aktuelna.setRedosled(0);
+        reorderRadnikOperacijaQueue(zaposleniId);
         RadnikOperacija radnikOperacija = new RadnikOperacija();
         radnikOperacija.setDatum(new Date());
         radnikOperacija.setPocetak(new Time(aktuelna.getPocetak().getTime()));
@@ -115,7 +178,7 @@ public class RadnikOperacijaQueueService {
         radnikOperacija.setKraj(new Time(new Date().getTime()));
         radnikOperacija.setOpisPosla(aktuelna.getOperacija().getNaziv());
         radnikOperacijaRepo.save(radnikOperacija);
-        aktuelna.setStatusOperacije(StatusOperacije.PLANIRANA);
+        aktuelna.setStatusOperacije(PLANIRANA);
         return radnikOperacijaQueueRepo.save(aktuelna);
     }
 
@@ -124,5 +187,9 @@ public class RadnikOperacijaQueueService {
         pauzirajAktuelnu(zaposleniId);
         putRadnikoperacijaQueueAktuelna(nova.getId(), zaposleniId);
         return nova;
+    }
+
+    public List<RadnikOperacijaQueue> saveAll(List<RadnikOperacijaQueue> radnikOperacijaQueues) {
+        return radnikOperacijaQueueRepo.saveAll(radnikOperacijaQueues);
     }
 }

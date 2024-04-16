@@ -3,10 +3,9 @@ package com.konstil.Belezenje.radnih.vremena.service;
 import com.konstil.Belezenje.radnih.vremena.controller.ZaposleniController;
 import com.konstil.Belezenje.radnih.vremena.domain.RNProizvodnja;
 import com.konstil.Belezenje.radnih.vremena.domain.RadniNalog;
-import com.konstil.Belezenje.radnih.vremena.repository.ProizvodRepo;
-import com.konstil.Belezenje.radnih.vremena.repository.RNProizvodnjaRepo;
-import com.konstil.Belezenje.radnih.vremena.repository.RadniNalogRepo;
-import com.konstil.Belezenje.radnih.vremena.repository.ZaposleniRepo;
+import com.konstil.Belezenje.radnih.vremena.domain.RadnikOperacijaQueue;
+import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
+import com.konstil.Belezenje.radnih.vremena.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +19,18 @@ public class RNProizvodnjaService {
     RadniNalogRepo radniNalogRepo;
     ProizvodRepo proizvodRepo;
     ZaposleniRepo zaposleniRepo;
+    RadnikOperacijaQueueRepo radnikOperacijaQueueRepo;
+    ProizvodOperacijaRepo proizvodOperacijaRepo;
 
     @Autowired
-    public RNProizvodnjaService(RNProizvodnjaRepo rnProizvodnjaRepo, RadniNalogRepo radniNalogRepo, ProizvodRepo proizvodRepo, ZaposleniRepo zaposleniRepo) {
+    public RNProizvodnjaService(RNProizvodnjaRepo rnProizvodnjaRepo, RadniNalogRepo radniNalogRepo, ProizvodRepo proizvodRepo, ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, ProizvodOperacijaRepo proizvodOperacijaRepo) {
         this.rnProizvodnjaRepo = rnProizvodnjaRepo;
         this.radniNalogRepo = radniNalogRepo;
         this.proizvodRepo = proizvodRepo;
         this.zaposleniRepo = zaposleniRepo;
+        this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
+
+        this.proizvodOperacijaRepo = proizvodOperacijaRepo;
     }
 
     public List<RNProizvodnja> getAll() {
@@ -44,6 +48,15 @@ public class RNProizvodnjaService {
             rnProizvodnja.setProizvod(null);
         } else {
             rnProizvodnja.setProizvod(proizvodRepo.findById(proizvodId).orElse(null));
+        }
+        if(rnProizvodnja.getTip()== RNProizvodnja.Tip.STANDARD){
+            RadnikOperacijaQueue radnikOperacijaQueue = new RadnikOperacijaQueue();
+            radnikOperacijaQueue.setStatusOperacije(StatusOperacije.PLANIRANA);
+            radnikOperacijaQueue.setRadniNalog(rnProizvodnja.getRadniNalog());
+            radnikOperacijaQueue.setOperacija(proizvodOperacijaRepo.findByProizvodIdAndRedosled(rnProizvodnja.getProizvod().getId(), 1).get().getOperacija());
+            radnikOperacijaQueue.setMasina(proizvodOperacijaRepo.findByProizvodIdAndRedosled(rnProizvodnja.getProizvod().getId(), 1).get().getMasina());
+            radnikOperacijaQueue.setRedosled(1);
+            radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
         }
         return rnProizvodnjaRepo.save(rnProizvodnja);
     }
