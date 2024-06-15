@@ -49,16 +49,17 @@ public class RNProizvodnjaService {
         } else {
             rnProizvodnja.setProizvod(proizvodRepo.findById(proizvodId).orElse(null));
         }
+        rnProizvodnja=  rnProizvodnjaRepo.save(rnProizvodnja);
         if(rnProizvodnja.getTip()== RNProizvodnja.Tip.STANDARD){
             RadnikOperacijaQueue radnikOperacijaQueue = new RadnikOperacijaQueue();
             radnikOperacijaQueue.setStatusOperacije(StatusOperacije.PLANIRANA);
-            radnikOperacijaQueue.setRadniNalog(rnProizvodnja.getRadniNalog());
+            radnikOperacijaQueue.setRadniNalog(rnProizvodnja);
             radnikOperacijaQueue.setOperacija(proizvodOperacijaRepo.findByProizvodIdAndRedosled(rnProizvodnja.getProizvod().getId(), 1).get().getOperacija());
             radnikOperacijaQueue.setMasina(proizvodOperacijaRepo.findByProizvodIdAndRedosled(rnProizvodnja.getProizvod().getId(), 1).get().getMasina());
             radnikOperacijaQueue.setRedosled(1);
             radnikOperacijaQueueRepo.save(radnikOperacijaQueue);
         }
-        return rnProizvodnjaRepo.save(rnProizvodnja);
+        return rnProizvodnja;
     }
 
     public List<RadniNalog> getRNProizvodnjaNadredjeni(Integer id) {

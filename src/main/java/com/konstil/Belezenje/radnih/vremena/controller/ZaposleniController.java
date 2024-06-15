@@ -1,6 +1,8 @@
 package com.konstil.Belezenje.radnih.vremena.controller;
 
 import com.konstil.Belezenje.radnih.vremena.domain.Zaposleni;
+import com.konstil.Belezenje.radnih.vremena.dto.CardInfo;
+import com.konstil.Belezenje.radnih.vremena.dto.CardLoginDTO;
 import com.konstil.Belezenje.radnih.vremena.dto.LoginRequest;
 import com.konstil.Belezenje.radnih.vremena.service.ZaposleniService;
 import lombok.Getter;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("/zaposleni")
@@ -49,17 +53,21 @@ public class ZaposleniController {
         return ResponseEntity.ok(zaposleniService.getZaposleniById(id));
     }
 
-    @PostMapping("/cardLogin/{cardId}")
-    public ResponseEntity<?> cardLogin(@PathVariable String cardId) {
+    @PostMapping("/cardLogin")
+    public ResponseEntity<?> cardLogin(@RequestBody Object cardInfo) {
+        LinkedHashMap<String, Object> cardInfoMap = (LinkedHashMap<String, Object>) cardInfo;
+
+        CardInfo cardInfoObject = new CardInfo((String) cardInfoMap.get("DATA"), (String) cardInfoMap.get("SN"), (int) cardInfoMap.get("CTRLINFO"), (int) cardInfoMap.get("online"), (String) cardInfoMap.get("OSN"), (String) cardInfoMap.get("UID"));
+
         try {
-            log.info("Card login: " + cardId);
-            Zaposleni zaposleni = zaposleniService.cardLogin(cardId);
-            simpMessagingTemplate.convertAndSend("/topic/cardLogin", zaposleni);
-            return ResponseEntity.ok(zaposleni);
+            CardLoginDTO cardLoginDTO = zaposleniService.cardLogin(cardInfoObject.getUID(), cardInfoObject.getOSN());
+            simpMessagingTemplate.convertAndSend("/topic/cardLogin", cardLoginDTO);
+            return ResponseEntity.ok(cardLoginDTO);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     @GetMapping("/menadzeri")
     public ResponseEntity<?> getMenadzeri(){

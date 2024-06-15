@@ -40,6 +40,9 @@ public class Zaposleni {
     @Enumerated(jakarta.persistence.EnumType.STRING)
     Rezim rezim;
 
+    @Column(unique = true, name = "card_uid")
+    String cardUID;
+
     public enum Rezim{
     STANDARD,KONSTRUKCIJE
     }

@@ -13,13 +13,14 @@ public interface RadnikOperacijaQueueRepo extends JpaRepository<RadnikOperacijaQ
 
     RadnikOperacijaQueue findFirstByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(Integer zaposleniId, StatusOperacije statusOperacije);
 
+    @Query("select roq from RadnikOperacijaQueue roq where roq.zaposleni.id = ?1 and roq.statusOperacije = ?2 order by roq.radniNalog.radniNalog.rok asc")
     List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacijeOrderByRadniNalogRokAsc(Integer zaposleniId, StatusOperacije statusOperacije);
 
 
     @Query("select max(roq.redosled) from RadnikOperacijaQueue roq where roq.zaposleni.id = ?1")
     Optional<Integer> findMaxRedosledByZaposleniId(Integer zaposleniId);
 
-    @Query("select roq from RadnikOperacijaQueue roq where roq.statusOperacije = ?1 order by roq.radniNalog.rok asc, roq.redosled asc")
+    @Query("select roq from RadnikOperacijaQueue roq where roq.statusOperacije = ?1 order by roq.radniNalog.radniNalog.rok asc, roq.redosled asc")
     List<RadnikOperacijaQueue> findAllByStatusOperacijeOrderByRadniNalogRokAscRedosledAsc(StatusOperacije statusOperacije);
 
     List<RadnikOperacijaQueue> findAllByZaposleniIdAndStatusOperacijeOrderByRedosledAsc(Integer id, StatusOperacije statusOperacije);

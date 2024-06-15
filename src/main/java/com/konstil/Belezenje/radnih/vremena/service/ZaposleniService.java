@@ -1,12 +1,11 @@
 package com.konstil.Belezenje.radnih.vremena.service;
 
-import com.konstil.Belezenje.radnih.vremena.domain.Operacija;
-import com.konstil.Belezenje.radnih.vremena.domain.StatusOperacije;
-import com.konstil.Belezenje.radnih.vremena.domain.Uloga;
-import com.konstil.Belezenje.radnih.vremena.domain.Zaposleni;
+import com.konstil.Belezenje.radnih.vremena.domain.*;
+import com.konstil.Belezenje.radnih.vremena.dto.CardLoginDTO;
 import com.konstil.Belezenje.radnih.vremena.dto.LoginRequest;
 import com.konstil.Belezenje.radnih.vremena.dto.ZaposleniAktuelnaPlaniranaDTO;
 import com.konstil.Belezenje.radnih.vremena.exception.BackEndError;
+import com.konstil.Belezenje.radnih.vremena.repository.CitacRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.OperacijaRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.RadnikOperacijaQueueRepo;
 import com.konstil.Belezenje.radnih.vremena.repository.ZaposleniRepo;
@@ -28,12 +27,15 @@ public class ZaposleniService {
 
     OperacijaRepo operacijaRepo;
 
+    CitacRepo citacRepo;
+
     @Autowired
-    public ZaposleniService(ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, OperacijaRepo operacijaRepo) {
+    public ZaposleniService(ZaposleniRepo zaposleniRepo, RadnikOperacijaQueueRepo radnikOperacijaQueueRepo, OperacijaRepo operacijaRepo, CitacRepo citacRepo) {
         this.zaposleniRepo = zaposleniRepo;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
         this.radnikOperacijaQueueRepo = radnikOperacijaQueueRepo;
         this.operacijaRepo = operacijaRepo;
+        this.citacRepo = citacRepo;
     }
 
 
@@ -72,11 +74,13 @@ public class ZaposleniService {
         return zaposleniRepo.findById(id).get();
     }
 
-    public Zaposleni cardLogin(String cardId) {
-        Zaposleni zaposleni = zaposleniRepo.findById(Integer.parseInt(cardId)).get();
+    public CardLoginDTO cardLogin(String cardId, String osn) {
+        Zaposleni zaposleni = zaposleniRepo.findByCardUID(cardId).get();
+        Citac citac = citacRepo.findById(osn).get();
+        CardLoginDTO cardLoginDTO = new CardLoginDTO(zaposleni,citac.getBroj());
         if(zaposleni==null)
             throw new BackEndError("Korisnicko ime ne postoji");
-        return zaposleni;
+        return cardLoginDTO;
     }
 
     public List<Zaposleni> getMenadzeri() {

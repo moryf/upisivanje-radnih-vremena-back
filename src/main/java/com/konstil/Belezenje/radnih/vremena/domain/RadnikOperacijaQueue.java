@@ -25,7 +25,7 @@ public class RadnikOperacijaQueue {
 
     Operacija operacija;
     @ManyToOne
-    RadniNalog radniNalog;
+    RNProizvodnja radniNalog;
     Date pocetak;
     @ManyToOne
     Masina masina;

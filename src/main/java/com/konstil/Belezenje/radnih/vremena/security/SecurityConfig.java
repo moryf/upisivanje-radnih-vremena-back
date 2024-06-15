@@ -20,7 +20,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())// Disable CSRF
                 .authorizeHttpRequests(auth ->
                                 auth
-                                        .requestMatchers("zaposleni/cardLogin/*").permitAll() // Allow all requests to the login and register endpoints
+                                        .requestMatchers("zaposleni/cardLogin").permitAll() // Allow all requests to the login and register endpoints
                                         .anyRequest().authenticated()
 
                         // Require authentication for all requests
